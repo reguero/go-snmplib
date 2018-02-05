@@ -554,10 +554,7 @@ func (w *SNMP) doGetV3(oid Oid, request BERType) (*Oid, interface{}, error) {
 	respAuthParam := v3HeaderDecoded[5].(string)
 	respPrivParam := v3HeaderDecoded[6].(string)
 
-	var plainResp string
 	var pduDecoded []interface{}
-	var respPacket []interface{}
-	var varbinds []interface{}
 
 	if len(respAuthParam) == 0 || len(respPrivParam) == 0 {
 		//return nil, nil, fmt.Errorf("Error,response is not encrypted.")
@@ -570,7 +567,7 @@ func (w *SNMP) doGetV3(oid Oid, request BERType) (*Oid, interface{}, error) {
 		} */
 	} else {
 		encryptedResp := decodedResponse[4].(string)
-		plainResp, _ = w.decrypt(encryptedResp, respPrivParam)
+		plainResp, _ := w.decrypt(encryptedResp, respPrivParam)
 		pduDecoded, err = DecodeSequence([]byte(plainResp))
 		if err != nil {
 			fmt.Printf("Error 3 decoding:%v\n", err)
@@ -579,9 +576,10 @@ func (w *SNMP) doGetV3(oid Oid, request BERType) (*Oid, interface{}, error) {
 	}
 
 	// Find the varbinds
-	respPacket = pduDecoded[3].([]interface{})
-	varbinds = respPacket[4].([]interface{})
+	respPacket := pduDecoded[3].([]interface{})
+	varbinds := respPacket[4].([]interface{})
 	result := varbinds[1].([]interface{})
+
 	resultOid := result[1].(Oid)
 	resultVal := result[2]
 
