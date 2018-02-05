@@ -568,25 +568,20 @@ func (w *SNMP) doGetV3(oid Oid, request BERType) (*Oid, interface{}, error) {
 			fmt.Printf("pduDecoded:%v:value=%x\n", i, reflect.ValueOf(val))
 			fmt.Printf("pduDecoded:%v:value=%s\n", i, reflect.ValueOf(val))
 		} */
-		respPacket = pduDecoded[3].([]interface{})
-		varbinds = respPacket[4].([]interface{})
 	} else {
 		encryptedResp := decodedResponse[4].(string)
 		plainResp, _ = w.decrypt(encryptedResp, respPrivParam)
-
 		pduDecoded, err = DecodeSequence([]byte(plainResp))
 		if err != nil {
 			fmt.Printf("Error 3 decoding:%v\n", err)
 			return nil, nil, err
 		}
-		// Find the varbinds
-		respPacket = pduDecoded[3].([]interface{})
-		varbinds = respPacket[4].([]interface{})
-
 	}
 
+	// Find the varbinds
+	respPacket = pduDecoded[3].([]interface{})
+	varbinds = respPacket[4].([]interface{})
 	result := varbinds[1].([]interface{})
-
 	resultOid := result[1].(Oid)
 	resultVal := result[2]
 
