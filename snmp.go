@@ -475,25 +475,24 @@ func (w *SNMP) GetV3(oid Oid) (interface{}, error) {
 func (w *SNMP) doGetV3(oid Oid, request BERType) (*Oid, interface{}, error) {
 	msgID := getRandomRequestID()
 	requestID := getRandomRequestID()
-	req, err := EncodeSequence(
-		[]interface{}{Sequence, w.engineID, "",
-			[]interface{}{request, requestID, 0, 0,
-				[]interface{}{Sequence,
-					[]interface{}{Sequence, oid, nil}}}})
-	if err != nil {
-		panic(err)
-	}
+	body := []interface{}{Sequence, w.engineID, "",
+		[]interface{}{request, requestID, 0, 0,
+			[]interface{}{Sequence,
+				[]interface{}{Sequence, oid, nil}}}}
 
-	var v3Header []byte
 	var encrypted string
 	var privParam string
 
 	if w.privAlg != SnmpNOPRIV {
+		req, err := EncodeSequence(body)
+		if err != nil {
+			panic(err)
+		}
 		encrypted, privParam, _ = w.encrypt(string(req))
 	} else {
 		privParam = ""
 	}
-	v3Header, err = EncodeSequence([]interface{}{Sequence, w.engineID,
+	v3Header, err := EncodeSequence([]interface{}{Sequence, w.engineID,
 		int(w.engineBoots), int(w.engineTime), w.user, strings.Repeat("\x00", 12), privParam})
 	if err != nil {
 		panic(err)
@@ -508,10 +507,7 @@ func (w *SNMP) doGetV3(oid Oid, request BERType) (*Oid, interface{}, error) {
 			Sequence, int(w.Version),
 			[]interface{}{Sequence, msgID, maxMsgSize, flags, USM},
 			string(v3Header),
-			[]interface{}{Sequence, w.engineID, "",
-				[]interface{}{request, requestID, 0, 0,
-					[]interface{}{Sequence,
-						[]interface{}{Sequence, oid, nil}}}}})
+			body})
 	} else {
 		flags = string([]byte{7})
 		packet, err = EncodeSequence([]interface{}{
