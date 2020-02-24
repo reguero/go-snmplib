@@ -537,7 +537,7 @@ func (w *SNMP) doGetV3(oid Oid, request BERType) (*Oid, interface{}, error) {
 
 	decodedResponse, err := DecodeSequence(response[:numRead])
 	if err != nil {
-		fmt.Printf("Error decoding getV3:%v\n", err)
+		fmt.Printf("Error decoding getV3 from %v: %v\n", w.Target, err)
 		return nil, nil, err
 	}
 
